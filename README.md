@@ -1,6 +1,6 @@
 # Endpoints on GKE with ESP
 
-##Objectives
+## Objectives
 
 Prerequisite: Have a Google Cloud Platform (GCP) account.
 
@@ -24,7 +24,7 @@ Set up a Google Cloud project
 2. Make sure that billing is enabled for your Google Cloud project.
 3. Make a note of the Google Cloud project ID because it is needed later.
 
-Create a container cluster on GKE
+## Create a container cluster on GKE
 
 1. In the Google Cloud Console, go to the GKE clusters page.
 2. Click  **Create cluster**.
@@ -34,7 +34,7 @@ This step can take a few minutes to complete.
 
 Make a note the cluster name and zone because they are needed when you authenticate [kubectl](https://kubernetes.io/docs/user-guide/kubectl-overview) to the container cluster.
 
-Install required software
+## Install required software
 
 If you already have the required software installed, continue with the next step.
 
@@ -65,13 +65,13 @@ gcloud auth application-default login
 
 In the new browser tab that opens, select an account.
 
-Downloading the sample code
+## Download the sample code
 
 Clone the sample app repository to your local machine:
 
 git clone https://github.com/ai-systems-today/endpoints-on-gke-with-esp
 
-Configure Endpoints
+## Configure Endpoints
 
 In the sample code directory, open the openapi.yaml configuration file.
 
@@ -88,7 +88,7 @@ In the host field, replace _ **YOUR\_PROJECT\_ID** _ with your Google Cloud proj
 
 host: &quot;echo-api.endpoints._ **YOUR\_PROJECT\_ID** _.cloud.goog&quot;
 
-Deploy the Endpoints configuration
+## Deploy the Endpoints configuration
 
 1. Upload the configuration and create a managed service:
 
@@ -98,7 +98,7 @@ When it finishes configuring the service, Service Management displays a message 
 
 Service Configuration [2017-02-13r0] uploaded for service [echo-api.endpoints.example-project-12345.cloud.goog]
 
-Check required services
+## Check required services
 
 At a minimum, Endpoints and ESP require the following Google services to be enabled:
 
@@ -127,7 +127,7 @@ gcloud services enable _ **ENDPOINTS\_SERVICE\_NAME** _
 
 For OpenAPI, the _ **ENDPOINTS\_SERVICE\_NAME** _ is what you specified in the host field of your OpenAPI spec.
 
-Deploy the API backend
+## Deploy the API backend
 
 Deploy prebuilt containers for the sample API and ESP to the cluster.
 
@@ -147,7 +147,7 @@ gcloud projects add-iam-policy-binding _ **PROJECT\_NAME** _
 
 --role roles/servicemanagement.serviceController
 
-Deploy the containers to the cluster
+## Deploy the containers to the cluster
 
 1. Get cluster credentials and make them available to kubectl:
 
@@ -155,7 +155,7 @@ gcloud container clusters get-credentials _ **NAME** _ --zone _ **ZONE** _
 
 Replace _ **NAME** _ with the cluster name and _ **ZONE** _ with the cluster zone.
 
-1. Replace _ **SERVICE\_NAME** _ in the ESP startup options with the name of your service.
+2. Replace _ **SERVICE\_NAME** _ in the ESP startup options with the name of your service.
 
 [deployment.yaml](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/endpoints/getting-started/deployment.yaml)
 
@@ -168,19 +168,19 @@ Replace _ **NAME** _ with the cluster name and _ **ZONE** _ with the cluster zon
      &quot;--rollout\_strategy=managed&quot;,
    ]
 
-1. Start the Kubernetes service using the [kubectl apply](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#apply) command:
+3. Start the Kubernetes service using the [kubectl apply](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#apply) command:
 
 kubectl apply -f deployment.yaml
 
-Get the cluster&#39;s external IP address
+## Get the cluster&#39;s external IP address
 
 1. View the external IP address:
 
 kubectl get service
 
-1. Make a note of the value for EXTERNAL-IP. You use that IP address when you send a request to the sample API.
+2. Make a note of the value for EXTERNAL-IP. You use that IP address when you send a request to the sample API.
 
-Send a request by using an IP address
+## Send a request by using an IP address
 
 Create an API key and set an environment variable
 
@@ -194,7 +194,7 @@ In Linux or macOS: export ENDPOINTS\_KEY=AIza...
 
 In Windows PowerShell: $Env:ENDPOINTS\_KEY=&quot;AIza...&quot;
 
-Send the request
+## Send the request
 
 Use curl to send an HTTP request by using the _ **ENDPOINTS\_KEY** _ environment variable you set previously.
 
@@ -205,7 +205,7 @@ curl --request POST \
     --data &#39;{&quot;message&quot;:&quot;hello world&quot;}&#39; \
     &quot;http://_ **IP\_ADDRESS** _:80/echo?key=${ENDPOINTS\_KEY}&quot;
 
-1. The API echoes back the message that you send, and responds with the following:
+2. The API echoes back the message that you send, and responds with the following:
 
 {
    &quot;message&quot;: &quot;hello world&quot;
@@ -213,13 +213,13 @@ curl --request POST \
 
 If you didn&#39;t get a successful response, see [Troubleshooting response errors](https://cloud.google.com/endpoints/docs/openapi/troubleshoot-response-errors).
 
-Track API activity
+## Track API activity
 
 1. Look at the activity graphs for your API in the  **Endpoints**  \&gt;  **Services**  page.
 2.
  Look at the request logs for your API in the Logs Viewer page.
 
-Configure DNS for Endpoints
+## Configure DNS for Endpoints
 
 1. Open your OpenAPI configuration file, openapi.yaml, and add the x-google-endpoints property at the top level of the file:
 
@@ -232,11 +232,11 @@ Replace _ **YOUR\_PROJECT\_ID** _ with your project ID.
 
 In the target property, replace _ **IP\_ADDRESS** _ with the IP address that you used when you sent a request to the sample API.
 
-1. Deploy your updated OpenAPI configuration file to Service Management:
+2. Deploy your updated OpenAPI configuration file to Service Management:
 
 gcloud endpoints services deploy openapi.yaml
 
-Send a request by using FQDN
+## Send a request by using FQDN
 
 Now that you have the DNS record configured for the sample API, send a request to it by using the FQDN (replace _ **YOUR\_PROJECT\_ID** _ with your project ID) and the _ **ENDPOINTS\_KEY** _ environment variable set previously:
 
@@ -251,7 +251,7 @@ curl --request POST \
 
 (Invoke-WebRequest -Method POST -Body&#39;{&quot;message&quot;: &quot;hello world&quot;}&#39; -Headers @{&quot;content-type&quot;=&quot;application/json&quot;} -URI &quot;http://echo-api.endpoints._**[YOUR\_PROJECT\_ID]**_.cloud.goog:80/echo?key=$Env:ENDPOINTS\_KEY&quot;).Content
 
-Clean up
+## Clean up
 
 To avoid incurring charges to your Google Cloud Platform account for the resources used in this tutorial:
 
