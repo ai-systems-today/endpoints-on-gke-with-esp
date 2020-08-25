@@ -1,0 +1,153 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Endpoints Example",
+    "description": "A simple Google Cloud Endpoints API example.",
+    "contact": {}
+  },
+  "host": "echo-api.endpoints.YOUR-PROJECT-ID.cloud.goog",
+  "basePath": "/",
+  "securityDefinitions": {
+    "key": {
+      "type": "apiKey",
+      "description": "",
+      "name": "key",
+      "in": "query"
+    }
+  },
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/echo": {
+      "post": {
+        "description": "Echo back a given message.",
+        "summary": "echo",
+        "operationId": "echo",
+        "deprecated": false,
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "message",
+            "in": "body",
+            "required": true,
+            "description": "Message to echo",
+            "schema": {
+              "$ref": "#/definitions/echoMessage"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Echo",
+            "schema": {
+              "$ref": "#/definitions/echoMessage"
+            },
+            "headers": {}
+          }
+        }
+      }
+    },
+    "/auth/info/googlejwt": {
+      "get": {
+        "description": "Returns the requests' authentication information.",
+        "summary": "auth_info_google_jwt",
+        "operationId": "auth_info_google_jwt",
+        "deprecated": false,
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Authentication info.",
+            "schema": {
+              "$ref": "#/definitions/authInfoResponse"
+            },
+            "headers": {}
+          }
+        }
+      }
+    },
+    "/auth/info/googleidtoken": {
+      "get": {
+        "description": "Returns the requests' authentication information.",
+        "summary": "authInfoGoogleIdToken",
+        "operationId": "authInfoGoogleIdToken",
+        "deprecated": false,
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Authentication info.",
+            "schema": {
+              "$ref": "#/definitions/authInfoResponse"
+            },
+            "headers": {}
+          }
+        }
+      }
+    },
+    "/auth/info/firebase": {
+      "get": {
+        "description": "Returns the requests' authentication information.",
+        "summary": "authInfoFirebase",
+        "operationId": "authInfoFirebase",
+        "deprecated": false,
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Authentication info.",
+            "schema": {
+              "$ref": "#/definitions/authInfoResponse"
+            },
+            "headers": {}
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "echoMessage": {
+      "title": "echoMessage",
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "authInfoResponse": {
+      "title": "authInfoResponse",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "key": []
+    }
+  ],
+  "tags": []
+}

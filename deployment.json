@@ -1,0 +1,21 @@
+﻿{
+	"apiVersion": "v1",
+	"kind": "Service",
+	"metadata": {
+		"name": "esp-echo"
+	},
+	"spec": {
+		"ports": [
+			{
+				"port": 80,
+				"targetPort": 8081,
+				"protocol": "TCP",
+				"name": "http"
+			}
+		],
+		"selector": {
+			"app": "esp-echo"
+		},
+		"type": "LoadBalancer"
+	}
+}
