@@ -1,170 +1,258 @@
-# Google Cloud Endpoints & Python
+# Endpoints on GKE with ESP
 
-[![Open in Cloud Shell][shell_img]][shell_link]
+Objectives
 
-[shell_img]: http://gstatic.com/cloudssh/images/open-btn.png
-[shell_link]: https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/GoogleCloudPlatform/python-docs-samples&page=editor&open_in_editor=endpoints/getting-started/README.md
+Prerequisite: Have a Google Cloud Platform (GCP) account.
 
-This sample demonstrates how to use Google Cloud Endpoints using Python.
+1. Set up a Google Cloud project.
+2. Create a container cluster on Google Kubernetes Engine (GKE).
+3. Install required software.
+4. Download the sample code.
+5. Configure Cloud Endpoints.
+6. Deploy the configuration to create an Endpoints service (API).
+7. Deploy the API and ESP to the cluster.
+8. Get the cluster&#39;s External IP address.
+9. Send a request to the API by using an IP address.
+10. Track API activity.
+11. Configure a DNS record for the sample API.
+12. Send a request to the API using the fully qualified domain name (FQDN).
+13. Clean up to avoid incurring charges to your GCP account.
 
-For a complete walkthrough showing how to run this sample in different
-environments, see the
-[Google Cloud Endpoints Quickstarts](https://cloud.google.com/endpoints/docs/quickstarts).
+Set up a Google Cloud project
 
-This sample consists of two parts:
+1. In the Cloud Console, select or create a Cloud project.
+2. Make sure that billing is enabled for your Google Cloud project.
+3. Make a note of the Google Cloud project ID because it is needed later.
 
-1. The backend
-2. The clients
+Create a container cluster on GKE
 
-## Running locally
+1. In the Google Cloud Console, go to the GKE clusters page.
+2. Click  **Create cluster**.
+3. Accept the defaults and click  **Create**.
 
-### Running the backend
+This step can take a few minutes to complete.
 
-Install all the dependencies:
-```bash
-$ virtualenv env
-$ source env/bin/activate
-$ pip install -r requirements.txt
-```
+Make a note the cluster name and zone because they are needed when you authenticate [kubectl](https://kubernetes.io/docs/user-guide/kubectl-overview) to the container cluster.
 
-Run the application:
-```bash
-$ python main.py
-```
+Install required software
 
-### Using the echo client
+If you already have the required software installed, continue with the next step.
 
-With the app running locally, you can execute the simple echo client using:
-```bash
-$ python clients/echo-client.py http://localhost:8080 APIKEY helloworld
-```
+1. Install curl
+2. Install and initialize the Cloud SDK.
 
-The `APIKEY` doesn't matter as the endpoint proxy is not running to do authentication.
+- Update the Cloud SDK and install the Endpoints components:
 
-## Deploying to Production
+gcloud components update
 
-See the
-[Google Cloud Endpoints Quickstarts](https://cloud.google.com/endpoints/docs/quickstarts).
+- Make sure that the Cloud SDK (gcloud) is authorized to access your data and services on Google Cloud:
 
-### Using the echo client
+gcloud auth login
 
-With the project deployed, you'll need to create an API key to access the API.
+- In the new browser tab that opens, select an account. Set the default project to your project ID:
 
-1. Open the Credentials page of the API Manager in the [Cloud Console](https://console.cloud.google.com/apis/credentials).
-2. Click 'Create credentials'.
-3. Select 'API Key'.
-4. Choose 'Server Key'
+gcloud config set project _ **YOUR\_PROJECT\_ID** _
 
-With the API key, you can use the echo client to access the API:
-```bash
-$ python clients/echo-client.py https://YOUR-PROJECT-ID.appspot.com YOUR-API-KEY helloworld
-```
+Replace _ **YOUR\_PROJECT\_ID** _ with your project ID.
 
-### Using the JWT client (with key file)
+1. Install kubectl:
 
-The JWT client demonstrates how to use a service account to authenticate to endpoints with the service account's private key file. To use the client, you'll need both an API key (as described in the echo client section) and a service account. To create a service account:
+gcloud components install kubectl
 
-1. Open the Credentials page of the API Manager in the [Cloud Console](https://console.cloud.google.com/apis/credentials).
-2. Click 'Create credentials'.
-3. Select 'Service account key'.
-4. In the 'Select service account' dropdown, select 'Create new service account'.
-5. Choose 'JSON' for the key type.
+- Acquire new user credentials to use for Application Default Credentials. The user credentials are needed to authorize kubectl.
 
-To use the service account for authentication:
+gcloud auth application-default login
 
-1. Update the `google_jwt`'s `x-google-jwks_uri` in `openapi.yaml` with your service account's email address.
-2. Redeploy your application.
+In the new browser tab that opens, select an account.
 
-Now you can use the JWT client to make requests to the API:
-```bash
-$ python clients/google-jwt-client.py https://YOUR-PROJECT-ID.appspot.com YOUR-API-KEY /path/to/service-account.json
-```
+Downloading the sample code
 
-### Using the ID Token client (with key file)
+Clone the sample app repository to your local machine:
 
-The ID Token client demonstrates how to use user credentials to authenticate to endpoints. To use the client, you'll need both an API key (as described in the echo client section) and a OAuth2 client ID. To create a client ID:
+git clone https://github.com/ai-systems-today/endpoints-on-gke-with-esp
 
-1. Open the Credentials page of the API Manager in the [Cloud Console](https://console.cloud.google.com/apis/credentials).
-2. Click 'Create credentials'.
-3. Select 'OAuth client ID'.
-4. Choose 'Other' for the application type.
+Configure Endpoints
 
-To use the client ID for authentication:
+In the sample code directory, open the openapi.yaml configuration file.
 
-1. Update the `google_id_token`'s `x-google-audiences` in `openapi.yaml`with your client ID.
-2. Redeploy your application.
+[openapi.yaml](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/endpoints/getting-started/openapi.yaml)
 
-Now you can use the client ID to make requests to the API:
-```bash
-$ python clients/google-id-token-client.py https://YOUR-PROJECT-ID.appspot.com YOUR-API-KEY /path/to/client-id.json
-```
+swagger: &quot;2.0&quot;
+info:
+  description: &quot;A simple Google Cloud Endpoints API example.&quot;
+   title: &quot;Endpoints Example&quot;
+   version: &quot;1.0.0&quot;
+host: &quot;echo-api.endpoints.YOUR-PROJECT-ID.cloud.goog&quot;
 
-### Using the App Engine default service account client (no key file needed)
+In the host field, replace _ **YOUR\_PROJECT\_ID** _ with your Google Cloud project ID, which should be in the following format:
 
-The App Engine default service account client demonstrates how to use the Google App Engine default service account to authenticate to endpoints.
-We refer to the project that serves API requests as the server project. You also need to create a client project in the [Cloud Console](https://console.cloud.google.com). The client project is running Google App Engine standard application.
+host: &quot;echo-api.endpoints._ **YOUR\_PROJECT\_ID** _.cloud.goog&quot;
 
-To use the App Engine default service account for authentication:
+Deploy the Endpoints configuration
 
-1. Update the `gae_default_service_account`'s `x-google-issuer` and `x-google-jwks_uri` in `openapi.yaml` with your client project ID.
-2. Redeploy your server application.
-3. Update clients/service_to_service_gae_default/main.py, replace 'YOUR-CLIENT-PROJECT-ID' and 'YOUR-SERVER-PROJECT-ID' with your client project ID and your server project ID.
-4. Upload your application to Google App Engine by invoking the following command. Note that you need to provide project ID in the command because there are two projects (server and client projects) here and gcloud needs to know which project to pick.
-```bash
-$ gcloud app deploy app.yaml --project=YOUR-CLIENT-PROJECT-ID
-```
+1. Upload the configuration and create a managed service:
 
-Your client app is now deployed at https://YOUR-CLIENT-PROJECT-ID.appspot.com. When you access https://YOUR-CLIENT-PROJECT-ID.appspot.com, your client calls your server project API using
-the client's service account.
+gcloud endpoints services deploy openapi.yaml
 
-### Using the service account client (no key file needed)
+When it finishes configuring the service, Service Management displays a message with the service configuration ID and the service name, similar to the following:
 
-The service account client demonstrates how to use a non-default service account to authenticate to endpoints.
-We refer to the project that serves API requests as the server project. You also need to create a client project in the [Cloud Console](https://console.cloud.google.com).
-The client project is running Google App Engine standard application.
+Service Configuration [2017-02-13r0] uploaded for service [echo-api.endpoints.example-project-12345.cloud.goog]
 
-In the example, we use Google Cloud Identity and Access Management (IAM) API to create a JSON Web Token (JWT) for a service account, and use it to call an Endpoints API.
+Check required services
 
-To use the client, you will need to enable "Service Account Actor" role for App Engine default service account:
+At a minimum, Endpoints and ESP require the following Google services to be enabled:
 
-1. Go to [IAM page](https://console.cloud.google.com/iam-admin/iam) of your client project.
-2. For App Engine default service account, from “Role(s)” drop-down menu, select “Project”-“Service Account Actor”, and Save.
+| Name | Title |
+| --- | --- |
+| servicemanagement.googleapis.com | Service Management API |
+| --- | --- |
+| servicecontrol.googleapis.com | Service Control API |
+| endpoints.googleapis.com | Google Cloud Endpoints |
 
-You also need to install Google API python library because the client code (main.py) uses googleapiclient,
-which is a python library that needs to be uploaded to App Engine with your application code. After you run "pip install -t lib -r requirements",
-Google API python client library should have already been installed under 'lib' directory. Additional information can be found
-[here](https://cloud.google.com/appengine/docs/python/tools/using-libraries-python-27#requesting_a_library).
+1. Use the following command to confirm that the required services are enabled:
 
-To use the client for authentication:
+gcloud services list
 
-1. Update the `google_service_account`'s `x-google-issuer` and `x-google-jwks_uri` in `openapi.yaml` with your service account email.
-2. Redeploy your server application.
-3. Update clients/service_to_service_non_default/main.py by replacing 'YOUR-SERVICE-ACCOUNT-EMAIL', 'YOUR-SERVER-PROJECT-ID' and 'YOUR-CLIENT-PROJECT-ID'
-with your service account email, your server project ID, and your client project ID, respectively.
-4. Upload your application to Google App Engine by invoking the following command. Note that you need to provide project ID in the command because there are two projects (server and client projects) here and gcloud needs to know which project to pick.
-```bash
-$ gcloud app deploy app.yaml --project=YOUR-CLIENT-PROJECT-ID
-```
+1. If you do not see the required services listed, enable them:
 
-Your client app is now deployed at https://YOUR-CLIENT-PROJECT-ID.appspot.com. When you access https://YOUR-CLIENT-PROJECT-ID.appspot.com, your client calls your server project API using
-the client's service account.
+gcloud services enable servicemanagement.googleapis.com
 
-### Using the ID token client (no key file needed)
+gcloud services enable servicecontrol.googleapis.com
 
-This example demonstrates how to authenticate to endpoints from Google App Engine default service account using Google ID token.
-In the example, we first create a JSON Web Token (JWT) using the App Engine default service account. We then request a Google
-ID token using the JWT, and call an Endpoints API using the Google ID token.
+gcloud services enable endpoints.googleapis.com
 
-We refer to the project that serves API requests as the server project. You also need to create a client project in the [Cloud Console](https://console.cloud.google.com).
-The client project is running Google App Engine standard application.
+1. Also enable your Endpoints service:
 
-To use the client for authentication:
+gcloud services enable _ **ENDPOINTS\_SERVICE\_NAME** _
 
-1. Update clients/service_to_service_google_id_token/main.py, replace 'YOUR-CLIENT-PROJECT-ID' and 'YOUR-SERVER-PROJECT-ID' with your client project ID and your server project ID.
-2. Upload your application to Google App Engine by invoking the following command. Note that you need to provide project ID in the command because there are two projects (server and client projects) here and gcloud needs to know which project to pick.
-```bash
-$ gcloud app deploy app.yaml --project=YOUR-CLIENT-PROJECT-ID
-```
+For OpenAPI, the _ **ENDPOINTS\_SERVICE\_NAME** _ is what you specified in the host field of your OpenAPI spec.
 
-Your client app is now deployed at https://YOUR-CLIENT-PROJECT-ID.appspot.com. When you access https://YOUR-CLIENT-PROJECT-ID.appspot.com, your client calls your server project API from
-the client's service account using Google ID token.
+Deploy the API backend
+
+Deploy prebuilt containers for the sample API and ESP to the cluster.
+
+Check required permissions
+
+**Note: ** This step is not needed if the GKE cluster is deployed with default service
+
+In the Cloud Console, go to the Kubernetes clusters page.
+
+1. Select your cluster from the list.
+2. Click  **Permissions**  to see the service account associated with the cluster.
+3. Grant required permissions to the service account:
+
+gcloud projects add-iam-policy-binding _ **PROJECT\_NAME** _
+
+--member &quot;serviceAccount:_ **SERVICE\_ACCOUNT** _&quot;
+
+--role roles/servicemanagement.serviceController
+
+Deploy the containers to the cluster
+
+1. Get cluster credentials and make them available to kubectl:
+
+gcloud container clusters get-credentials _ **NAME** _ --zone _ **ZONE** _
+
+Replace _ **NAME** _ with the cluster name and _ **ZONE** _ with the cluster zone.
+
+1. Replace _ **SERVICE\_NAME** _ in the ESP startup options with the name of your service.
+
+[deployment.yaml](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/endpoints/getting-started/deployment.yaml)
+
+- name: esp
+   image: gcr.io/endpoints-release/endpoints-runtime:1
+   args: [
+     &quot;--http\_port=8081&quot;,
+     &quot;--backend=127.0.0.1:8080&quot;,
+     &quot;--service=SERVICE\_NAME&quot;,
+     &quot;--rollout\_strategy=managed&quot;,
+   ]
+
+1. Start the Kubernetes service using the [kubectl apply](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#apply) command:
+
+kubectl apply -f deployment.yaml
+
+Get the cluster&#39;s external IP address
+
+1. View the external IP address:
+
+kubectl get service
+
+1. Make a note of the value for EXTERNAL-IP. You use that IP address when you send a request to the sample API.
+
+Send a request by using an IP address
+
+Create an API key and set an environment variable
+
+1. In the same Google Cloud project that you used for your API, create an API key on the API credentials page.
+2. Click  **Create credentials** , and then select  **API key**.
+3. Copy the key to the clipboard.
+4. Click  **Close**.
+5. On your local computer, paste the API key to assign it to an environment variable:
+
+In Linux or macOS: export ENDPOINTS\_KEY=AIza...
+
+In Windows PowerShell: $Env:ENDPOINTS\_KEY=&quot;AIza...&quot;
+
+Send the request
+
+Use curl to send an HTTP request by using the _ **ENDPOINTS\_KEY** _ environment variable you set previously.
+
+1. Replace _ **IP\_ADDRESS** _ with the external IP address of your instance.
+
+curl --request POST \
+    --header &quot;content-type:application/json&quot; \
+    --data &#39;{&quot;message&quot;:&quot;hello world&quot;}&#39; \
+    &quot;http://_ **IP\_ADDRESS** _:80/echo?key=${ENDPOINTS\_KEY}&quot;
+
+1. The API echoes back the message that you send, and responds with the following:
+
+{
+   &quot;message&quot;: &quot;hello world&quot;
+ }
+
+If you didn&#39;t get a successful response, see [Troubleshooting response errors](https://cloud.google.com/endpoints/docs/openapi/troubleshoot-response-errors).
+
+Track API activity
+
+1. Look at the activity graphs for your API in the  **Endpoints**  \&gt;  **Services**  page.
+2.
+ Look at the request logs for your API in the Logs Viewer page.
+
+Configure DNS for Endpoints
+
+1. Open your OpenAPI configuration file, openapi.yaml, and add the x-google-endpoints property at the top level of the file:
+
+host: &quot;echo-api.endpoints._ **YOUR\_PROJECT\_ID** _.cloud.goog&quot;
+ x-google-endpoints:
+ - name: &quot;echo-api.endpoints._ **YOUR\_PROJECT\_ID** _.cloud.goog&quot;
+   target: &quot;_ **IP\_ADDRESS** _&quot;
+
+Replace _ **YOUR\_PROJECT\_ID** _ with your project ID.
+
+In the target property, replace _ **IP\_ADDRESS** _ with the IP address that you used when you sent a request to the sample API.
+
+1. Deploy your updated OpenAPI configuration file to Service Management:
+
+gcloud endpoints services deploy openapi.yaml
+
+Send a request by using FQDN
+
+Now that you have the DNS record configured for the sample API, send a request to it by using the FQDN (replace _ **YOUR\_PROJECT\_ID** _ with your project ID) and the _ **ENDPOINTS\_KEY** _ environment variable set previously:
+
+- In Linux / mac OS:
+
+curl --request POST \
+     --header &quot;content-type:application/json&quot; \
+     --data &#39;{&quot;message&quot;:&quot;hello world&quot;}&#39; \
+     &quot;http://echo-api.endpoints._ **YOUR\_PROJECT\_ID** _.cloud.goog:80/echo?key=${ENDPOINTS\_KEY}&quot;
+
+- In Windows PowerShell:
+
+(Invoke-WebRequest -Method POST -Body&#39;{&quot;message&quot;: &quot;hello world&quot;}&#39; -Headers @{&quot;content-type&quot;=&quot;application/json&quot;} -URI &quot;http://echo-api.endpoints._**[YOUR\_PROJECT\_ID]**_.cloud.goog:80/echo?key=$Env:ENDPOINTS\_KEY&quot;).Content
+
+Clean up
+
+To avoid incurring charges to your Google Cloud Platform account for the resources used in this tutorial:
+
+See [Deleting an API and API instances](https://cloud.google.com/endpoints/docs/openapi/deleting-an-api-and-instances) for information on stopping the services used by this tutorial.
