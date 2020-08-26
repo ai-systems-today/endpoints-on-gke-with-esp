@@ -122,9 +122,9 @@ At a minimum, Endpoints and ESP require the following Google services to be enab
 
 3. Also enable your Endpoints service:
 
-	>gcloud services enable _ **ENDPOINTS\_SERVICE\_NAME** _
+	>gcloud services enable _ **ENDPOINTS\_SERVICE\_NAME**
 
-	For OpenAPI, the _ **ENDPOINTS\_SERVICE\_NAME** _ is what you specified in the host field of your OpenAPI spec.
+	For OpenAPI, the _ **ENDPOINTS\_SERVICE\_NAME** is what you specified in the host field of your OpenAPI spec.
 
 ## Deploy the API backend
 
@@ -140,11 +140,9 @@ In the Cloud Console, go to the Kubernetes clusters page.
 2. Click  **Permissions**  to see the service account associated with the cluster.
 3. Grant required permissions to the service account:
 
-gcloud projects add-iam-policy-binding _ **PROJECT\_NAME** _
-
---member &quot;serviceAccount:_ **SERVICE\_ACCOUNT** _&quot;
-
---role roles/servicemanagement.serviceController
+	>gcloud projects add-iam-policy-binding _ **PROJECT\_NAME** _
+	>--member &quot;serviceAccount:_ **SERVICE\_ACCOUNT** _&quot;
+	>--role roles/servicemanagement.serviceController
 
 ### Deploy the containers to the cluster
 
@@ -154,20 +152,20 @@ gcloud projects add-iam-policy-binding _ **PROJECT\_NAME** _
 
 	Replace _ **NAME** _ with the cluster name and _ **ZONE** _ with the cluster zone.
 
-2. Replace _ **SERVICE\_NAME** _ in the ESP startup options with the name of your service.
+2. Open deployment.yaml and change:
 
-	[deployment.yaml]
-
-	>- name: esp
-	>   image: gcr.io/endpoints-release/endpoints-runtime:1
-	>   args: [
-	>	 &quot;--http\_port=8081&quot;,
-	>	 &quot;--backend=127.0.0.1:8080&quot;,
-	>	 &quot;--service=SERVICE\_NAME&quot;,
-	>	 &quot;--rollout\_strategy=managed&quot;,
+	>name: esp
+	>  image: gcr.io/endpoints-release/endpoints-runtime:1
+	>  args: [
+	>	--http\_port=8081&quot;,
+	>	--backend=127.0.0.1:8080&quot;,
+	>	--service=SERVICE\_NAME&quot;,
+	>	--rollout\_strategy=managed&quot;,
 	>   ]
+	
+	Replace _ **SERVICE\_NAME** in the ESP startup options with the name of your service.
 
-3. Start the Kubernetes service using the [kubectl apply](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#apply) command:
+3. Start the Kubernetes service using the:
 
 	>kubectl apply -f deployment.yaml
 
@@ -189,15 +187,19 @@ Create an API key and set an environment variable
 4. Click  **Close**.
 5. On your local computer, paste the API key to assign it to an environment variable:
 
-	In Linux or macOS: >export ENDPOINTS\_KEY=AIza...
+	In Linux or macOS: 
+	
+	>export ENDPOINTS\_KEY=AIza...
 
-	In Windows PowerShell: >$Env:ENDPOINTS\_KEY=&quot;AIza...&quot;
+	In Windows PowerShell: 
+	
+	>$Env:ENDPOINTS\_KEY=&quot;AIza...&quot;
 
 ## Send the request
 
-Use curl to send an HTTP request by using the _ **ENDPOINTS\_KEY** _ environment variable you set previously.
+Use curl to send an HTTP request by using the **ENDPOINTS\_KEY** environment variable you set previously.
 
-1. Replace _ **IP\_ADDRESS** _ with the external IP address of your instance.
+1. Replace **IP\_ADDRESS** with the external IP address of your instance.
 
 	>curl --request POST \
 	>	--header &quot;content-type:application/json&quot; \
@@ -221,14 +223,14 @@ Use curl to send an HTTP request by using the _ **ENDPOINTS\_KEY** _ environment
 
 1. Open your OpenAPI configuration file, openapi.yaml, and add the x-google-endpoints property at the top level of the file:
 
-	>host: &quot;echo-api.endpoints._ **YOUR\_PROJECT\_ID** _.cloud.goog&quot;
+	>host: &quot;echo-api.endpoints.**YOUR\_PROJECT\_ID**.cloud.goog
 	> x-google-endpoints:
-	> - name: &quot;echo-api.endpoints._ **YOUR\_PROJECT\_ID** _.cloud.goog&quot;
-	>   target: &quot;_ **IP\_ADDRESS** _&quot;
+	> - name: &quot;echo-api.endpoints.**YOUR\_PROJECT\_ID**.cloud.goog
+	>   target:**IP\_ADDRESS**
 
-	Replace _ **YOUR\_PROJECT\_ID** _ with your project ID.
+	Replace **YOUR\_PROJECT\_ID** with your project ID.
 
-	In the target property, replace _ **IP\_ADDRESS** _ with the IP address that you used when you sent a request to the sample API.
+	In the target property, replace **IP\_ADDRESS** with the IP address that you used when you sent a request to the sample API.
 
 2. Deploy your updated OpenAPI configuration file to Service Management:
 
@@ -240,14 +242,10 @@ Now that you have the DNS record configured for the sample API, send a request t
 
 In Linux / mac OS:
 
-	curl --request POST \
-		 --header &quot;content-type:application/json&quot; \
-		 --data &#39;{&quot;message&quot;:&quot;hello world&quot;}&#39; \
-		 &quot;http://echo-api.endpoints._ **YOUR\_PROJECT\_ID** _.cloud.goog:80/echo?key=${ENDPOINTS\_KEY}&quot;
-
-	In Windows PowerShell:
-
-	(Invoke-WebRequest -Method POST -Body&#39;{&quot;message&quot;: &quot;hello world&quot;}&#39; -Headers @{&quot;content-type&quot;=&quot;application/json&quot;} -URI &quot;http://echo-api.endpoints._**[YOUR\_PROJECT\_ID]**_.cloud.goog:80/echo?key=$Env:ENDPOINTS\_KEY&quot;).Content
+	>curl --request POST \
+	>	 --header &quot;content-type:application/json&quot; \
+	>	 --data {'message':'hello world'} \
+	>	 "http://echo-api.endpoints._ **YOUR\_PROJECT\_ID** .cloud.goog:80/echo?key=${ENDPOINTS\_KEY}"
 
 ## Clean up
 
