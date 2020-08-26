@@ -223,10 +223,10 @@ Use curl to send an HTTP request by using the **ENDPOINTS\_KEY** environment var
 
 1. Open your OpenAPI configuration file, openapi.yaml, and add the x-google-endpoints property at the top level of the file:
 
-	>host: &quot;echo-api.endpoints.**YOUR\_PROJECT\_ID**.cloud.goog
-	> x-google-endpoints:
-	> - name: &quot;echo-api.endpoints.**YOUR\_PROJECT\_ID**.cloud.goog
-	>   target:**IP\_ADDRESS**
+	>host: "echo-api.endpoints.**YOUR\_PROJECT\_ID**.cloud.goog"
+	>x-google-endpoints:
+	>  name: "echo-api.endpoints.**YOUR\_PROJECT\_ID**.cloud.goog"
+	>  target:**IP\_ADDRESS**
 
 	Replace **YOUR\_PROJECT\_ID** with your project ID.
 
