@@ -1,6 +1,6 @@
 # Endpoints on GKE with ESP
 
-This tutorial is referenced from: https://cloud.google.com/endpoints/docs/openapi/get-started-kubernetes-engine#before-you-begin on Cloud Endpoints with OpenAPI.
+This tutorial is referenced from: https://cloud.google.com/endpoints/docs/openapi/get-started-kubernetes-engine on Cloud Endpoints with OpenAPI.
 
 ## Objectives
 
